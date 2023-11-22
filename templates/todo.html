@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo List - ToDo App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-4">ToDo List</h1>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger mb-3">Logout</a>
+        <form method="POST" action="{{ url_for('add_task') }}" class="mb-3">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Add a new task" name="task" required>
+                <select class="custom-select" name="priority">
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </div>
+        </form>
+        <hr>
+        <h3>Grouped Todos:</h3>
+        <button class="btn btn-primary" id="showGroupedBtn">Show Grouped Todos</button>
+
+        <!-- ... -->
+
+        <div id="groupedList" style="display: none;">
+            {% set grouped_todos = {} %}
+            {% for task in todos %}
+                {% set first_char = task.task[0] %}
+                {% if first_char not in grouped_todos %}
+                    {% set _ = grouped_todos.update({first_char: [task]}) %}
+                {% else %}
+                    {% set _ = grouped_todos[first_char].append(task) %}
+                {% endif %}
+            {% endfor %}
+            {% for first_char, tasks in grouped_todos.items() %}
+                <h4>{{ first_char }}</h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Issued Date</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                            <tr>
+                                <td>{% if task.done %}<s>{{ task.task }}</s>{% else %}{{ task.task }}{% endif %}</td>
+                                <td>{{ task.issued_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>{{ task.priority }}</td>
+                                <td>{% if task.done %}Done{% else %}Pending{% endif %}</td>
+                                <td>
+                                    {% if not task.done %}
+                                        <form method="POST" action="{{ url_for('mark_as_done', task_id=task.id) }}" style="display: inline-block;">
+                                            <button type="submit" class="btn btn-sm btn-primary">Done</button>
+                                        </form>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display: inline-block;">
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endfor %}
+        </div>
+
+        <!-- ... -->
+
+
+    <script>
+        const showGroupedBtn = document.getElementById('showGroupedBtn');
+        const groupedList = document.getElementById('groupedList');
+
+        showGroupedBtn.addEventListener('click', () => {
+            groupedList.style.display = 'block';
+        });
+    </script>
+</body>
+
+</html>
